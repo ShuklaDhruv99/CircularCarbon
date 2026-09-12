@@ -34,9 +34,9 @@ No database changes. The report is generated on demand from existing data and is
 
 ## Files to create
 
-- `backend/app/services/report_service.py` — orchestrates `factory_service.get`, `emission_calculation_service.get_breakdown`, `hotspot_service.get_hotspots`, `recommendation_service.get_for_factory`, and `action_plan_service.get_action_plan` (in that order, letting `NotFoundError` propagate unchanged), then renders a PDF via `reportlab` with these sections in order: factory information → current total emissions → emission breakdown (by category and by process) → top hotspots → ranked recommendations (with cost tier, CO₂ reduction, payback) → prioritized action plan (Now/Next/Later with phase totals). Cost figures must carry the same "placeholder estimate" caveat text already used elsewhere for `COST_TIER_ESTIMATES`.
+- `backend/app/services/report_service.py` — orchestrates `factory_service.get`, `emission_calculation_service.get_breakdown`, `hotspot_service.get_hotspots`, `recommendation_service.get_for_factory`, and `action_plan_service.get_action_plan` (in that order, letting `NotFoundError` propagate unchanged), then renders a PDF via `reportlab` with these sections in order: factory information → current total emissions → emission breakdown (by category and by process) → top hotspots → ranked recommendations (with cost tier, CO₂ reduction, payback) → prioritized action plan (Now/Next/Later with phase totals). Cost figures must carry the same "placeholder estimate" caveat text already used elsewhere for `COST_TIER_ESTIMATES`. Note: each downstream service independently re-validates factory/emissions existence, so a single report request re-fetches/re-checks that state up to 4-5 times — this redundancy is an accepted hackathon-scope tradeoff (no shared "load once" context object) and should not be optimized away in v1. Each action-plan phase (Now/Next/Later) must render its heading even when empty, with an explicit "no recommendations in this phase" note — mirroring the "no recommendations generated yet" rule for the recommendations section. Sanitize/slugify the factory name before using it in the `Content-Disposition` filename (strip/replace characters unsafe for filenames or HTTP headers, e.g. `/`, `\`, quotes).
 - `backend/app/api/report.py` — `GET /api/report/factory/{factory_id}` route, thin, delegating to `report_service.generate_report_pdf`, returning a `fastapi.responses.Response` with `media_type="application/pdf"`
-- `backend/tests/test_report_service.py` — unit tests verifying the service produces non-empty PDF bytes and raises `NotFoundError` when upstream preconditions aren't met
+- `backend/tests/test_report_service.py` — unit tests verifying the service produces non-empty PDF bytes and raises `NotFoundError` when upstream preconditions aren't met. Verifying PDF text content requires a test-only PDF-reading library (`pypdf`) since `reportlab` has no built-in text extraction — add `pypdf` to `backend/requirements.txt` (or a dev-only requirements file if one exists) alongside `reportlab`.
 - `backend/tests/test_report_api.py` — API tests: 200 with correct `Content-Type`/`Content-Disposition` headers and non-empty PDF body for a fully-populated factory, 404 for a factory without calculated emissions, 404 for a nonexistent factory
 - `frontend/src/services/report.ts` — exports a pure helper `reportUrl(factoryId: number): string` building the endpoint URL from the existing API base URL constant (no fetch/blob handling needed since the browser handles the download natively via the anchor tag)
 - `frontend/src/components/report/ReportDownloadButton.tsx`
@@ -44,7 +44,9 @@ No database changes. The report is generated on demand from existing data and is
 
 ## New dependencies
 
-- `reportlab` (backend, Python) — pure-Python PDF generation library, no system-level dependencies (e.g. no Pango/Cairo/wkhtmltopdf), appropriate for a Windows-based hackathon environment. This is the only new dependency introduced by this step; no frontend dependency is added since the download is a plain anchor tag.
+- `reportlab` (backend, Python) — pure-Python PDF generation library, no system-level dependencies (e.g. no Pango/Cairo/wkhtmltopdf), appropriate for a Windows-based hackathon environment.
+- `pypdf` (backend, Python, test-only) — used solely in tests to extract text from generated PDFs for content assertions; not imported by application code.
+- No frontend dependency is added since the download is a plain anchor tag.
 
 ## Rules for implementation
 
@@ -67,7 +69,7 @@ Always follow:
 - [ ] Returns 404 when the factory exists but has no calculated emissions (mirrors the precondition already enforced by `emission_calculation_service.get_breakdown`/`action_plan_service.get_action_plan`)
 - [ ] Returns 200 with `Content-Type: application/pdf` and a `Content-Disposition: attachment` header containing a filename derived from the factory name
 - [ ] The returned PDF is non-empty and contains, at minimum, the factory name, total CO₂e, each hotspot's category/activity, each recommendation's title, and each action-plan phase name — verified in tests via `reportlab`'s own text extraction or by asserting on byte length/PDF magic bytes plus a text-layer check
-- [ ] A factory with zero recommendations still produces a valid PDF (report shows emissions/hotspots sections with an explicit "no recommendations generated yet" note in the recommendations/action-plan sections)
+- [ ] A factory with zero recommendations still produces a valid PDF (report shows emissions/hotspots sections with an explicit "no recommendations generated yet" note in the recommendations section, and each action-plan phase heading renders with an explicit "no recommendations in this phase" note when empty)
 - [ ] Unit tests cover: full pipeline success, 404 propagation from each upstream service (factory missing, emissions not calculated)
 - [ ] API tests cover: 200 with headers/body assertions, 404 missing factory, 404 uncalculated factory
 - [ ] Frontend `ReportDownloadButton` renders a disabled state before emissions are calculated and an enabled download link afterward, verified via component test
