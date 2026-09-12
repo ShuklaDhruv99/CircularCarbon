@@ -3,6 +3,7 @@ import HomePage from "./pages/HomePage";
 import Onboarding from "./pages/Onboarding";
 import OnboardingComplete from "./pages/OnboardingComplete";
 import EmissionsDashboard from "./pages/EmissionsDashboard";
+import WorkspaceSectionPage from "./pages/WorkspaceSectionPage";
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/onboarding/complete/:factoryId" element={<OnboardingComplete />} />
         <Route path="/factories/:factoryId/emissions" element={<EmissionsDashboard />} />
+        <Route path="/factories/:factoryId/emissions/:section" element={<WorkspaceSectionPage />} />
       </Routes>
     </BrowserRouter>
   );

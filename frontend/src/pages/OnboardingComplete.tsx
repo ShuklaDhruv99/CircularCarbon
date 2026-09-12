@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getFactory } from "../services/onboarding";
 import type { Factory } from "../types/domain";
+import { rememberFactory } from "../services/persistence";
 
 // The backend returns Decimal-backed fields (quantity, production_volume, ...)
 // as full-precision strings like "100000.0000000000" — trim that down to a
@@ -20,13 +21,13 @@ function OnboardingComplete() {
   useEffect(() => {
     if (!factoryId) return;
     getFactory(Number(factoryId))
-      .then((result) => setFactory(result))
+      .then((result) => { rememberFactory(result); setFactory(result); })
       .catch(() => setError("Unable to load the saved factory data."));
   }, [factoryId]);
 
   if (error) {
     return (
-      <div className="mx-auto flex min-h-screen max-w-2xl flex-col gap-4 bg-background px-4 py-10">
+      <div className="app-shell page-frame py-10">
         <p className="rounded-md bg-red-50 px-4 py-2 text-sm text-danger">{error}</p>
         <Link to="/" className="text-primary underline">
           Back to home
@@ -37,17 +38,18 @@ function OnboardingComplete() {
 
   if (!factory) {
     return (
-      <div className="mx-auto flex min-h-screen max-w-2xl flex-col gap-4 bg-background px-4 py-10">
+      <div className="app-shell page-frame py-10">
         <p className="text-muted">Loading saved data...</p>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-2xl flex-col gap-8 bg-background px-4 py-10">
-      <h1 className="text-2xl font-semibold text-text">Assessment data saved</h1>
+    <div className="completion-page"><header className="wizard-nav"><div className="page-frame wizard-nav-inner"><Link to="/" className="brand"><span className="brand-mark" />CircularCarbon</Link><span className="nav-status"><span className="status-dot" />Assessment complete</span></div></header><main className="page-frame completion-main">
+      <div className="completion-hero"><div><div className="eyebrow">Baseline created / 04</div><h1>Your facility is ready to be measured.</h1><p>Your operating context is saved. Next, turn the baseline into a ranked emissions view and a practical action plan.</p></div><div className="completion-check">✓<span>Saved</span></div></div>
+      <div className="completion-summary"><div><span>FACILITY</span><strong>{factory.name}</strong></div><div><span>INDUSTRY</span><strong>{factory.industry}</strong></div><div><span>PROCESSES</span><strong>{factory.processes.length}</strong></div><div><span>STATUS</span><strong className="completion-live">Ready to calculate</strong></div></div>
 
-      <section className="flex flex-col gap-2 rounded-md border border-border bg-surface p-4">
+      <section className="form-card completion-details" style={{ marginBottom: 16 }}>
         <h2 className="text-lg font-semibold text-text">Factory</h2>
         <p className="text-sm text-text">Name: {factory.name}</p>
         <p className="text-sm text-text">Industry: {factory.industry}</p>
@@ -63,7 +65,7 @@ function OnboardingComplete() {
       </section>
 
       {factory.processes.map((process) => (
-        <section key={process.id} className="flex flex-col gap-4 rounded-md border border-border bg-surface p-4">
+        <section key={process.id} className="form-card completion-details" style={{ marginBottom: 16 }}>
           <h2 className="text-lg font-semibold text-text">Process: {process.name}</h2>
           {process.process_type && <p className="text-sm text-text">Type: {process.process_type}</p>}
           {process.production_volume !== undefined && (
@@ -121,19 +123,21 @@ function OnboardingComplete() {
         </section>
       ))}
 
+      <div className="completion-actions">
       {factoryId && (
         <Link
           to={`/factories/${factoryId}/emissions`}
-          className="w-fit rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white"
+          className="primary-btn"
         >
           View emissions dashboard
         </Link>
       )}
 
-      <Link to="/" className="text-primary underline">
+      <Link to="/" className="secondary-btn">
         Back to home
       </Link>
-    </div>
+      </div>
+    </main></div>
   );
 }
 

@@ -1,4 +1,15 @@
-export type Industry = "Metal Manufacturing" | "Textile Manufacturing" | "Food Processing";
+export type Industry =
+  | "Metal Manufacturing"
+  | "Textile Manufacturing"
+  | "Food Processing"
+  | "Electronics Manufacturing"
+  | "Chemical Manufacturing"
+  | "Plastics & Rubber"
+  | "Paper & Packaging"
+  | "Pharmaceuticals"
+  | "Automotive Manufacturing"
+  | "Construction Materials"
+  | "Other Manufacturing";
 
 export type EnergyType =
   | "electricity"

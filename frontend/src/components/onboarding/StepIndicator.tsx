@@ -15,15 +15,9 @@ function statusFor(stepNumber: number, currentStep: number): "current" | "comple
   return "upcoming";
 }
 
-const statusClasses: Record<"current" | "complete" | "upcoming", string> = {
-  current: "bg-primary text-white",
-  complete: "bg-secondary text-white",
-  upcoming: "bg-border text-muted",
-};
-
 function StepIndicator({ currentStep }: StepIndicatorProps) {
   return (
-    <ol className="flex w-full items-center justify-between gap-2">
+    <ol className="step-list">
       {STEPS.map(({ number, label }) => {
         const status = statusFor(number, currentStep);
         return (
@@ -31,14 +25,14 @@ function StepIndicator({ currentStep }: StepIndicatorProps) {
             key={number}
             data-testid={`step-${number}`}
             data-status={status}
-            className="flex flex-1 flex-col items-center gap-1 text-center"
+            className=""
           >
             <span
-              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold ${statusClasses[status]}`}
+              className="step-bullet"
             >
               {number}
             </span>
-            <span className="text-xs font-medium text-text">{label}</span>
+            <span>{label}</span>
           </li>
         );
       })}

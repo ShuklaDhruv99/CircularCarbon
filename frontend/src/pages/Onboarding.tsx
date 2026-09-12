@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ApiError } from "../services/api";
+import { rememberFactory } from "../services/persistence";
 import {
   createEnergyEntry,
   createFactory,
@@ -42,6 +43,7 @@ function Onboarding() {
     setError(null);
     try {
       const factory = await createFactory(draft);
+      rememberFactory(factory);
       setWizard((current) => ({ ...current, factoryId: factory.id, step: 2 }));
     } catch (e) {
       setError(toErrorMessage(e));
@@ -106,36 +108,17 @@ function Onboarding() {
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-2xl flex-col gap-8 bg-background px-4 py-10">
-      <StepIndicator currentStep={wizard.step} />
-
-      {wizard.step === 1 && (
-        <FactoryStep onSubmit={handleFactorySubmit} isSubmitting={isSubmitting} error={error} />
-      )}
-      {wizard.step === 2 && (
-        <ProcessStep
-          onSubmit={handleProcessSubmit}
-          onBack={goBack}
-          isSubmitting={isSubmitting}
-          error={error}
-        />
-      )}
-      {wizard.step === 3 && (
-        <EnergyMaterialsStep
-          onSubmit={handleEnergyMaterialsSubmit}
-          onBack={goBack}
-          isSubmitting={isSubmitting}
-          error={error}
-        />
-      )}
-      {wizard.step === 4 && (
-        <WasteStep
-          onSubmit={handleWasteSubmit}
-          onBack={goBack}
-          isSubmitting={isSubmitting}
-          error={error}
-        />
-      )}
+    <div className="wizard-shell">
+      <header className="wizard-nav"><div className="page-frame wizard-nav-inner"><Link to="/" className="brand"><span className="brand-mark" />CircularCarbon</Link><span className="nav-status"><span className="status-dot" />Secure assessment</span></div></header>
+      <div className="page-frame wizard-layout">
+        <aside className="wizard-aside"><div className="eyebrow">Factory assessment</div><div className="wizard-intro"><h1>Build your carbon baseline.</h1><p>A short guided intake turns your operating data into an actionable emissions model.</p></div><StepIndicator currentStep={wizard.step} /></aside>
+        <main className="form-card">
+          {wizard.step === 1 && <FactoryStep onSubmit={handleFactorySubmit} isSubmitting={isSubmitting} error={error} />}
+          {wizard.step === 2 && <ProcessStep onSubmit={handleProcessSubmit} onBack={goBack} isSubmitting={isSubmitting} error={error} />}
+          {wizard.step === 3 && <EnergyMaterialsStep onSubmit={handleEnergyMaterialsSubmit} onBack={goBack} isSubmitting={isSubmitting} error={error} />}
+          {wizard.step === 4 && <WasteStep onSubmit={handleWasteSubmit} onBack={goBack} isSubmitting={isSubmitting} error={error} />}
+        </main>
+      </div>
     </div>
   );
 }

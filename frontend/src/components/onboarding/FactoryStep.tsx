@@ -14,20 +14,37 @@ const INDUSTRY_OPTIONS: { value: Industry; label: string }[] = [
   { value: "Metal Manufacturing", label: "Metal Manufacturing" },
   { value: "Textile Manufacturing", label: "Textile Manufacturing" },
   { value: "Food Processing", label: "Food Processing" },
+  { value: "Electronics Manufacturing", label: "Electronics & Electrical" },
+  { value: "Chemical Manufacturing", label: "Chemical Manufacturing" },
+  { value: "Plastics & Rubber", label: "Plastics & Rubber" },
+  { value: "Paper & Packaging", label: "Paper & Packaging" },
+  { value: "Pharmaceuticals", label: "Pharmaceuticals" },
+  { value: "Automotive Manufacturing", label: "Automotive Manufacturing" },
+  { value: "Construction Materials", label: "Construction Materials" },
+  { value: "Other Manufacturing", label: "Other manufacturing" },
 ];
 
 const ALLOWED_INDUSTRIES: Industry[] = INDUSTRY_OPTIONS.map((option) => option.value);
 
 const PRODUCTION_UNIT_OPTIONS = [
   { value: "units/month", label: "units/month" },
+  { value: "units/year", label: "units/year" },
   { value: "tonnes/month", label: "tonnes/month" },
+  { value: "tonnes/year", label: "tonnes/year" },
   { value: "kg/month", label: "kg/month" },
+  { value: "kg/year", label: "kg/year" },
   { value: "pieces/month", label: "pieces/month" },
+  { value: "pieces/year", label: "pieces/year" },
   { value: "liters/month", label: "liters/month" },
+  { value: "liters/year", label: "liters/year" },
+  { value: "batches/month", label: "batches/month" },
+  { value: "m²/month", label: "m²/month" },
   { value: "Other", label: "Other" },
 ];
 
 const ASSESSMENT_PERIOD_OPTIONS = [
+  { value: "Weekly", label: "Weekly" },
+  { value: "Biweekly", label: "Every two weeks" },
   { value: "Monthly", label: "Monthly" },
   { value: "Quarterly", label: "Quarterly" },
   { value: "Yearly", label: "Yearly" },
@@ -41,7 +58,7 @@ function FactoryStep({ onSubmit, isSubmitting, error }: FactoryStepProps) {
   const [productionVolume, setProductionVolume] = useState("");
   const [productionUnitOption, setProductionUnitOption] = useState("");
   const [productionUnitCustom, setProductionUnitCustom] = useState("");
-  const [assessmentPeriodOption, setAssessmentPeriodOption] = useState("");
+  const [assessmentPeriodOption, setAssessmentPeriodOption] = useState("Monthly");
   const [assessmentPeriodCustom, setAssessmentPeriodCustom] = useState("");
   const [fieldErrors, setFieldErrors] = useState<{
     name?: string;
@@ -109,7 +126,7 @@ function FactoryStep({ onSubmit, isSubmitting, error }: FactoryStepProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-xl font-semibold text-text">Tell us about your factory</h2>
+      <div className="onboarding-step-heading"><div><span className="eyebrow">Step 1 / Facility profile</span><h2 className="text-xl font-semibold text-text">Set up your factory in under two minutes.</h2><p>Start with the basics. You can refine optional details later.</p></div><span className="onboarding-time">≈ 2 min</span></div>
 
       {error && <p className="rounded-md bg-red-50 px-4 py-2 text-sm text-danger">{error}</p>}
 
@@ -120,7 +137,8 @@ function FactoryStep({ onSubmit, isSubmitting, error }: FactoryStepProps) {
         onChange={setName}
         required
         error={fieldErrors.name}
-        helpText="Used to identify this facility across all future assessments."
+        placeholder="e.g. GreenForge Components"
+        helpText="Required — used to identify this facility across assessments."
       />
       <SelectField
         label="Industry"
@@ -130,14 +148,15 @@ function FactoryStep({ onSubmit, isSubmitting, error }: FactoryStepProps) {
         options={INDUSTRY_OPTIONS}
         required
         error={fieldErrors.industry}
-        placeholder="Select an industry"
+        placeholder="Choose the closest match"
       />
       <TextField
         label="Location"
         name="location"
         value={location}
         onChange={setLocation}
-        helpText="City/region, optional — helps contextualize energy grid factors later."
+        placeholder="e.g. Pune, Maharashtra, India"
+        helpText="Optional — city or region helps contextualize energy factors."
       />
       <TextField
         label="Production Volume"
@@ -146,7 +165,8 @@ function FactoryStep({ onSubmit, isSubmitting, error }: FactoryStepProps) {
         value={productionVolume}
         onChange={setProductionVolume}
         error={fieldErrors.production_volume}
-        helpText="Optional — total output over the assessment period."
+        placeholder="e.g. 1200"
+        helpText="Optional — total output for the selected period."
       />
       <SelectField
         label="Production Unit"
@@ -155,7 +175,7 @@ function FactoryStep({ onSubmit, isSubmitting, error }: FactoryStepProps) {
         onChange={setProductionUnitOption}
         options={PRODUCTION_UNIT_OPTIONS}
         error={productionUnitOption === "Other" ? undefined : fieldErrors.production_unit}
-        placeholder="Optional — select a unit"
+        placeholder="Optional — choose an output unit"
       />
       {productionUnitOption === "Other" && (
         <TextField
@@ -174,7 +194,7 @@ function FactoryStep({ onSubmit, isSubmitting, error }: FactoryStepProps) {
         onChange={setAssessmentPeriodOption}
         options={ASSESSMENT_PERIOD_OPTIONS}
         error={assessmentPeriodOption === "Other" ? undefined : fieldErrors.assessment_period}
-        placeholder="Optional — select a period"
+        placeholder="Monthly (recommended)"
       />
       {assessmentPeriodOption === "Other" && (
         <TextField

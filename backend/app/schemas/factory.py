@@ -8,7 +8,19 @@ from pydantic import BaseModel, ConfigDict
 
 from app.schemas.process import ProcessRead
 
-Industry = Literal["Metal Manufacturing", "Textile Manufacturing", "Food Processing"]
+Industry = Literal[
+    "Metal Manufacturing",
+    "Textile Manufacturing",
+    "Food Processing",
+    "Electronics Manufacturing",
+    "Chemical Manufacturing",
+    "Plastics & Rubber",
+    "Paper & Packaging",
+    "Pharmaceuticals",
+    "Automotive Manufacturing",
+    "Construction Materials",
+    "Other Manufacturing",
+]
 
 
 class FactoryBase(BaseModel):

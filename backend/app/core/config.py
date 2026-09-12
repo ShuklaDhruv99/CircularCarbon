@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql://postgres:postgres@localhost:5432/circularcarbon"
     gemini_api_key: str = ""
     gemini_model: str = "gemini-2.0-flash"
-    cors_origins: str = "http://localhost:5173"
+    cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 
     @property
     def cors_origin_list(self) -> list[str]:
