@@ -166,6 +166,22 @@ export interface SimulationResult {
   applied_recommendations: Recommendation[];
 }
 
+export type ActionPlanPhaseName = "now" | "next" | "later";
+
+export interface ActionPlanPhase {
+  phase: ActionPlanPhaseName;
+  recommendations: Recommendation[];
+  total_co2_reduction: string;
+  total_implementation_cost: string;
+}
+
+export interface ActionPlan {
+  factory_id: number;
+  now: ActionPlanPhase;
+  next: ActionPlanPhase;
+  later: ActionPlanPhase;
+}
+
 export interface Explanation {
   recommendation_id: number;
   why: string;

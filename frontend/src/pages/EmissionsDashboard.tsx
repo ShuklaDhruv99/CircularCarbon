@@ -4,13 +4,22 @@ import { calculateEmissions, getFactoryEmissions, getHotspots } from "../service
 import { generateRecommendations, getRecommendations } from "../services/recommendations";
 import { generateExplanations } from "../services/explanations";
 import { simulateFactory } from "../services/simulation";
+import { getActionPlan } from "../services/actionPlan";
 import { ApiError } from "../services/api";
-import type { EmissionsBreakdown, Explanation, Hotspot, Recommendation, SimulationResult } from "../types/domain";
+import type {
+  ActionPlan,
+  EmissionsBreakdown,
+  Explanation,
+  Hotspot,
+  Recommendation,
+  SimulationResult,
+} from "../types/domain";
 import CategoryBreakdownChart from "../components/emissions/CategoryBreakdownChart";
 import ProcessBreakdownTable from "../components/emissions/ProcessBreakdownTable";
 import HotspotList from "../components/emissions/HotspotList";
 import RecommendationList from "../components/recommendations/RecommendationList";
 import SimulationPanel from "../components/simulation/SimulationPanel";
+import ActionPlanPanel from "../components/action-plan/ActionPlanPanel";
 
 type LoadState = "loading" | "not-calculated" | "ready" | "error";
 
@@ -34,6 +43,9 @@ function EmissionsDashboard() {
   const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
   const [isSimulating, setIsSimulating] = useState(false);
   const [simulationError, setSimulationError] = useState<string | null>(null);
+  const [actionPlan, setActionPlan] = useState<ActionPlan | null>(null);
+  const [isGeneratingActionPlan, setIsGeneratingActionPlan] = useState(false);
+  const [actionPlanError, setActionPlanError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     if (!factoryId) return;
@@ -146,6 +158,20 @@ function EmissionsDashboard() {
       setIsSimulating(false);
     }
   }, [factoryId, selectedRecommendationIds]);
+
+  const handleGenerateActionPlan = useCallback(async () => {
+    if (!factoryId) return;
+    setIsGeneratingActionPlan(true);
+    setActionPlanError(null);
+    try {
+      const result = await getActionPlan(Number(factoryId));
+      setActionPlan(result);
+    } catch {
+      setActionPlanError("Unable to generate action plan.");
+    } finally {
+      setIsGeneratingActionPlan(false);
+    }
+  }, [factoryId]);
 
   if (state === "loading") {
     return (
@@ -264,6 +290,17 @@ function EmissionsDashboard() {
           isLoading={isSimulating}
           error={simulationError}
           onRun={handleRunSimulation}
+          disabled={recommendations.length === 0}
+        />
+      </section>
+
+      <section className="flex flex-col gap-4 rounded-md border border-border bg-surface p-4">
+        <h2 className="text-lg font-semibold text-text">Prioritized Action Plan</h2>
+        <ActionPlanPanel
+          plan={actionPlan}
+          isLoading={isGeneratingActionPlan}
+          error={actionPlanError}
+          onGenerate={handleGenerateActionPlan}
           disabled={recommendations.length === 0}
         />
       </section>
