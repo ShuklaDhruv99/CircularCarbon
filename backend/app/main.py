@@ -4,7 +4,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api import energy, factories, health, materials, processes, waste
+from app.api import emissions, energy, factories, health, materials, processes, waste
 from app.core.config import settings
 from app.services.errors import NotFoundError
 
@@ -30,3 +30,4 @@ app.include_router(processes.router)
 app.include_router(energy.router)
 app.include_router(materials.router)
 app.include_router(waste.router)
+app.include_router(emissions.router)

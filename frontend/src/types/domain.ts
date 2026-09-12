@@ -91,3 +91,41 @@ export interface Factory extends Omit<FactoryCreate, "production_volume"> {
   created_at: string;
   processes: Process[];
 }
+
+export interface EmissionResult {
+  id: number;
+  process_id: number;
+  category: string; // "energy" | "materials" | "waste"
+  activity: string;
+  emission_factor: string;
+  emission_factor_source: string | null;
+  co2e: string;
+  period: string;
+  created_at: string;
+}
+
+export interface CategoryBreakdown {
+  category: string;
+  co2e: string;
+  percentage: string;
+}
+
+export interface ProcessBreakdown {
+  process_id: number;
+  process_name: string;
+  co2e: string;
+  percentage: string;
+}
+
+export interface EmissionsBreakdown {
+  factory_id: number;
+  factory_total_co2e: string;
+  category_breakdown: CategoryBreakdown[];
+  process_breakdown: ProcessBreakdown[];
+  results: EmissionResult[];
+}
+
+export interface Hotspot extends EmissionResult {
+  percentage: string;
+  is_hotspot: boolean;
+}

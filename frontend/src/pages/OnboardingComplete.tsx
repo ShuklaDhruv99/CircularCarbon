@@ -121,6 +121,15 @@ function OnboardingComplete() {
         </section>
       ))}
 
+      {factoryId && (
+        <Link
+          to={`/factories/${factoryId}/emissions`}
+          className="w-fit rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white"
+        >
+          View emissions dashboard
+        </Link>
+      )}
+
       <Link to="/" className="text-primary underline">
         Back to home
       </Link>
