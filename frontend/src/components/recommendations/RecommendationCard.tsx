@@ -4,6 +4,8 @@ import type { Recommendation } from "../../types/domain";
 interface RecommendationCardProps {
   recommendation: Recommendation;
   children?: ReactNode;
+  selected?: boolean;
+  onToggleSelect?: () => void;
 }
 
 const strategyLabels: Record<Recommendation["strategy"], string> = {
@@ -41,18 +43,29 @@ function formatPayback(value: string | null): string {
   return Number.isFinite(parsed) ? `${parsed} months` : value;
 }
 
-function RecommendationCard({ recommendation, children }: RecommendationCardProps) {
+function RecommendationCard({ recommendation, children, selected, onToggleSelect }: RecommendationCardProps) {
   return (
     <li
       data-testid={`recommendation-card-${recommendation.id}`}
       className="flex flex-col gap-2 rounded-md border border-border bg-surface p-4 text-sm text-text"
     >
       <div className="flex items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <span className="font-semibold">{recommendation.title}</span>
-          <span className="text-xs text-muted">
-            {recommendation.hotspot_activity} ({recommendation.hotspot_category})
-          </span>
+        <div className="flex items-start gap-2">
+          {onToggleSelect && (
+            <input
+              type="checkbox"
+              aria-label={`Select ${recommendation.title}`}
+              checked={selected ?? false}
+              onChange={onToggleSelect}
+              className="mt-1"
+            />
+          )}
+          <div className="flex flex-col gap-1">
+            <span className="font-semibold">{recommendation.title}</span>
+            <span className="text-xs text-muted">
+              {recommendation.hotspot_activity} ({recommendation.hotspot_category})
+            </span>
+          </div>
         </div>
         <span className="w-fit rounded-full bg-mint px-3 py-1 text-xs font-semibold text-primary">
           {strategyLabels[recommendation.strategy]}

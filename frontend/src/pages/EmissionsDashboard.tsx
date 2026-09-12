@@ -3,12 +3,14 @@ import { Link, useParams } from "react-router-dom";
 import { calculateEmissions, getFactoryEmissions, getHotspots } from "../services/emissions";
 import { generateRecommendations, getRecommendations } from "../services/recommendations";
 import { generateExplanations } from "../services/explanations";
+import { simulateFactory } from "../services/simulation";
 import { ApiError } from "../services/api";
-import type { EmissionsBreakdown, Explanation, Hotspot, Recommendation } from "../types/domain";
+import type { EmissionsBreakdown, Explanation, Hotspot, Recommendation, SimulationResult } from "../types/domain";
 import CategoryBreakdownChart from "../components/emissions/CategoryBreakdownChart";
 import ProcessBreakdownTable from "../components/emissions/ProcessBreakdownTable";
 import HotspotList from "../components/emissions/HotspotList";
 import RecommendationList from "../components/recommendations/RecommendationList";
+import SimulationPanel from "../components/simulation/SimulationPanel";
 
 type LoadState = "loading" | "not-calculated" | "ready" | "error";
 
@@ -28,6 +30,10 @@ function EmissionsDashboard() {
   const [isCalculating, setIsCalculating] = useState(false);
   const [isGeneratingRecommendations, setIsGeneratingRecommendations] = useState(false);
   const [isGeneratingExplanations, setIsGeneratingExplanations] = useState(false);
+  const [selectedRecommendationIds, setSelectedRecommendationIds] = useState<Set<number>>(new Set());
+  const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [simulationError, setSimulationError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     if (!factoryId) return;
@@ -114,6 +120,32 @@ function EmissionsDashboard() {
       setIsGeneratingExplanations(false);
     }
   }, [factoryId]);
+
+  const handleToggleRecommendation = useCallback((id: number) => {
+    setSelectedRecommendationIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleRunSimulation = useCallback(async () => {
+    if (!factoryId) return;
+    setIsSimulating(true);
+    setSimulationError(null);
+    try {
+      const result = await simulateFactory(Number(factoryId), Array.from(selectedRecommendationIds));
+      setSimulationResult(result);
+    } catch {
+      setSimulationError("Unable to run simulation.");
+    } finally {
+      setIsSimulating(false);
+    }
+  }, [factoryId, selectedRecommendationIds]);
 
   if (state === "loading") {
     return (
@@ -217,7 +249,23 @@ function EmissionsDashboard() {
             </button>
           </div>
         </div>
-        <RecommendationList recommendations={recommendations} explanations={explanations} />
+        <RecommendationList
+          recommendations={recommendations}
+          explanations={explanations}
+          selectedIds={selectedRecommendationIds}
+          onToggle={handleToggleRecommendation}
+        />
+      </section>
+
+      <section className="flex flex-col gap-4 rounded-md border border-border bg-surface p-4">
+        <h2 className="text-lg font-semibold text-text">What-If Simulator</h2>
+        <SimulationPanel
+          result={simulationResult}
+          isLoading={isSimulating}
+          error={simulationError}
+          onRun={handleRunSimulation}
+          disabled={recommendations.length === 0}
+        />
       </section>
 
       <Link to="/" className="text-primary underline">
