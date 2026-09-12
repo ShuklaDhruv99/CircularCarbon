@@ -129,3 +129,28 @@ export interface Hotspot extends EmissionResult {
   percentage: string;
   is_hotspot: boolean;
 }
+
+export type RecommendationStrategy =
+  | "reduce"
+  | "reuse"
+  | "recycle"
+  | "substitute"
+  | "recover"
+  | "process_optimization";
+
+export type RecommendationCostTier = "low" | "medium" | "high";
+
+export interface Recommendation {
+  id: number;
+  hotspot_id: number;
+  hotspot_category: string;
+  hotspot_activity: string;
+  title: string;
+  description: string;
+  strategy: RecommendationStrategy;
+  estimated_cost: RecommendationCostTier;
+  co2_reduction: string;
+  payback_period: string | null;
+  score: string | null;
+  created_at: string;
+}
