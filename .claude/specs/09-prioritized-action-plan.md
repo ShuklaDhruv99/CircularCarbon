@@ -35,7 +35,9 @@ No database changes. The action plan is computed on demand from existing `Recomm
 ## Files to create
 
 - `backend/app/data/action_plan_rules.py` — fixed phase-bucketing thresholds (documented constants, no magic numbers inline)
-- `backend/app/schemas/action_plan.py` — `ActionPlanPhaseRead`, `ActionPlanRead` Pydantic schemas
+- `backend/app/schemas/action_plan.py` — Pydantic schemas:
+  - `ActionPlanPhaseRead`: `phase: Literal["now", "next", "later"]`, `recommendations: list[RecommendationRead]`, `total_co2_reduction: Decimal`, `total_implementation_cost: Decimal`
+  - `ActionPlanRead`: `factory_id: int`, `now: ActionPlanPhaseRead`, `next: ActionPlanPhaseRead`, `later: ActionPlanPhaseRead` (matches `SimulationResult`'s inclusion of `factory_id` for consistency)
 - `backend/app/services/action_plan_service.py` — bucketing + aggregation logic, reusing `recommendation_service.get_for_factory` and `cost_estimates.COST_TIER_ESTIMATES`
 - `backend/app/api/action_plan.py` — `GET /api/action-plan/factory/{factory_id}` route
 - `backend/tests/test_action_plan_service.py` — unit tests for bucketing/aggregation logic
@@ -67,10 +69,10 @@ Always follow:
 - [ ] `GET /api/action-plan/factory/{factory_id}` returns 404 when the factory has no calculated emissions (mirrors `get_hotspots`/`get_for_factory` precondition)
 - [ ] Returns an action plan with all three phases present (each possibly empty) when the factory has zero recommendations
 - [ ] Every recommendation returned by `recommendation_service.get_for_factory` appears in exactly one phase (Now/Next/Later), with no duplicates and no omissions
-- [ ] Phase assignment follows fixed rules: Now = `estimated_cost == "low"` and (`payback_period` is null or ≤ 6 months); Next = `estimated_cost == "medium"` or `payback_period` between 6 and 24 months; Later = `estimated_cost == "high"` or `payback_period` > 24 months
+- [ ] Phase assignment follows fixed, non-overlapping rules, evaluated in this order (a high-cost or long-payback recommendation always lands in the more conservative phase even if the other dimension is favorable — intentional worst-of bucketing for an MVP): Later = `estimated_cost == "high"` or `payback_period > 24` months; Now = `estimated_cost == "low"` and (`payback_period` is null or `<= 6` months); Next = everything else (i.e. `estimated_cost == "medium"`, or `payback_period > 6 and <= 24` months)
 - [ ] Each phase reports `total_co2_reduction` (sum of `co2_reduction` of its recommendations) and `total_implementation_cost` (sum of `COST_TIER_ESTIMATES[estimated_cost]`), matching manual calculation in unit tests
 - [ ] Recommendations within each phase remain ordered by `score` desc (tie-break `id` asc), consistent with Step 06 ordering
-- [ ] Unit tests cover: empty recommendations, single-phase-only recommendations, mixed-phase recommendations, null `payback_period` handling
+- [ ] Unit tests cover: empty recommendations, single-phase-only recommendations, mixed-phase recommendations, null `payback_period` handling (construct a `Recommendation`/`RecommendationRead` directly with `payback_period=None` for this case — Step 06's generation pipeline always populates `payback_period`, so this path is unreachable end-to-end and must be tested at the service/unit level)
 - [ ] API tests cover: 200 with populated plan, 200 with empty plan (0 recommendations), 404 for factory without calculated emissions
 - [ ] Frontend `ActionPlanPanel` renders three phase sections with recommendation titles and phase totals, verified via component test
 - [ ] `EmissionsDashboard.tsx` "Generate Action Plan" button fetches and displays the plan without breaking existing sections (manually verified in the running app)
