@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { calculateEmissions, getFactoryEmissions, getHotspots } from "../services/emissions";
+import { generateRecommendations, getRecommendations } from "../services/recommendations";
 import { ApiError } from "../services/api";
-import type { EmissionsBreakdown, Hotspot } from "../types/domain";
+import type { EmissionsBreakdown, Hotspot, Recommendation } from "../types/domain";
 import CategoryBreakdownChart from "../components/emissions/CategoryBreakdownChart";
 import ProcessBreakdownTable from "../components/emissions/ProcessBreakdownTable";
 import HotspotList from "../components/emissions/HotspotList";
+import RecommendationList from "../components/recommendations/RecommendationList";
 
 type LoadState = "loading" | "not-calculated" | "ready" | "error";
 
@@ -19,8 +21,10 @@ function EmissionsDashboard() {
   const [state, setState] = useState<LoadState>("loading");
   const [breakdown, setBreakdown] = useState<EmissionsBreakdown | null>(null);
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [isGeneratingRecommendations, setIsGeneratingRecommendations] = useState(false);
 
   const loadData = useCallback(async () => {
     if (!factoryId) return;
@@ -34,6 +38,19 @@ function EmissionsDashboard() {
       setBreakdown(breakdownResult);
       setHotspots(hotspotsResult);
       setState("ready");
+
+      // Recommendations may not have been generated yet even though
+      // emissions/hotspots are calculated (they're a separate action), so
+      // a 404 here just means "no recommendations yet" rather than an error.
+      try {
+        setRecommendations(await getRecommendations(Number(factoryId)));
+      } catch (recErr) {
+        if (recErr instanceof ApiError && recErr.status === 404) {
+          setRecommendations([]);
+        } else {
+          throw recErr;
+        }
+      }
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
         setState("not-calculated");
@@ -61,6 +78,20 @@ function EmissionsDashboard() {
       setIsCalculating(false);
     }
   }, [factoryId, loadData]);
+
+  const handleGenerateRecommendations = useCallback(async () => {
+    if (!factoryId) return;
+    setIsGeneratingRecommendations(true);
+    setError(null);
+    try {
+      const result = await generateRecommendations(Number(factoryId));
+      setRecommendations(result);
+    } catch {
+      setError("Unable to generate recommendations.");
+    } finally {
+      setIsGeneratingRecommendations(false);
+    }
+  }, [factoryId]);
 
   if (state === "loading") {
     return (
@@ -140,6 +171,21 @@ function EmissionsDashboard() {
       <section className="flex flex-col gap-4 rounded-md border border-border bg-surface p-4">
         <h2 className="text-lg font-semibold text-text">Emission Hotspots</h2>
         <HotspotList hotspots={hotspots} />
+      </section>
+
+      <section className="flex flex-col gap-4 rounded-md border border-border bg-surface p-4">
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-lg font-semibold text-text">Circular Recommendations</h2>
+          <button
+            type="button"
+            onClick={handleGenerateRecommendations}
+            disabled={isGeneratingRecommendations}
+            className="w-fit rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+          >
+            {isGeneratingRecommendations ? "Generating..." : "Generate Recommendations"}
+          </button>
+        </div>
+        <RecommendationList recommendations={recommendations} />
       </section>
 
       <Link to="/" className="text-primary underline">

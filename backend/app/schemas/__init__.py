@@ -13,6 +13,7 @@ from app.schemas.process import (
     ProcessRead,
     ProcessUpdate,
 )
+from app.schemas.recommendation import RecommendationRead
 from app.schemas.waste import WasteBase, WasteCreate, WasteRead
 
 __all__ = [
@@ -30,6 +31,7 @@ __all__ = [
     "ProcessCreate",
     "ProcessRead",
     "ProcessUpdate",
+    "RecommendationRead",
     "WasteBase",
     "WasteCreate",
     "WasteRead",

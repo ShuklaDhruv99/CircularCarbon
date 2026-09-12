@@ -5,9 +5,11 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import EmissionsDashboard from "./EmissionsDashboard";
 import { ApiError } from "../services/api";
 import * as emissionsService from "../services/emissions";
+import * as recommendationsService from "../services/recommendations";
 import type { EmissionsBreakdown, Hotspot } from "../types/domain";
 
 vi.mock("../services/emissions");
+vi.mock("../services/recommendations");
 
 const breakdown: EmissionsBreakdown = {
   factory_id: 1,
@@ -50,6 +52,7 @@ function renderDashboard() {
 describe("EmissionsDashboard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(recommendationsService.getRecommendations).mockRejectedValue(new ApiError("not found", 404));
   });
 
   it("shows a loading state while fetching data", () => {
