@@ -2,8 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { calculateEmissions, getFactoryEmissions, getHotspots } from "../services/emissions";
 import { generateRecommendations, getRecommendations } from "../services/recommendations";
+import { generateExplanations } from "../services/explanations";
 import { ApiError } from "../services/api";
-import type { EmissionsBreakdown, Hotspot, Recommendation } from "../types/domain";
+import type { EmissionsBreakdown, Explanation, Hotspot, Recommendation } from "../types/domain";
 import CategoryBreakdownChart from "../components/emissions/CategoryBreakdownChart";
 import ProcessBreakdownTable from "../components/emissions/ProcessBreakdownTable";
 import HotspotList from "../components/emissions/HotspotList";
@@ -22,9 +23,11 @@ function EmissionsDashboard() {
   const [breakdown, setBreakdown] = useState<EmissionsBreakdown | null>(null);
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [explanations, setExplanations] = useState<Record<number, Explanation>>({});
   const [error, setError] = useState<string | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [isGeneratingRecommendations, setIsGeneratingRecommendations] = useState(false);
+  const [isGeneratingExplanations, setIsGeneratingExplanations] = useState(false);
 
   const loadData = useCallback(async () => {
     if (!factoryId) return;
@@ -90,6 +93,25 @@ function EmissionsDashboard() {
       setError("Unable to generate recommendations.");
     } finally {
       setIsGeneratingRecommendations(false);
+    }
+  }, [factoryId]);
+
+  const handleExplainRecommendations = useCallback(async () => {
+    if (!factoryId) return;
+    setIsGeneratingExplanations(true);
+    setError(null);
+    try {
+      const result = await generateExplanations(Number(factoryId));
+      setExplanations(
+        result.reduce<Record<number, Explanation>>((acc, explanation) => {
+          acc[explanation.recommendation_id] = explanation;
+          return acc;
+        }, {}),
+      );
+    } catch {
+      setError("Unable to generate explanations.");
+    } finally {
+      setIsGeneratingExplanations(false);
     }
   }, [factoryId]);
 
@@ -176,16 +198,26 @@ function EmissionsDashboard() {
       <section className="flex flex-col gap-4 rounded-md border border-border bg-surface p-4">
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-lg font-semibold text-text">Circular Recommendations</h2>
-          <button
-            type="button"
-            onClick={handleGenerateRecommendations}
-            disabled={isGeneratingRecommendations}
-            className="w-fit rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
-          >
-            {isGeneratingRecommendations ? "Generating..." : "Generate Recommendations"}
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={handleGenerateRecommendations}
+              disabled={isGeneratingRecommendations}
+              className="w-fit rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+            >
+              {isGeneratingRecommendations ? "Generating..." : "Generate Recommendations"}
+            </button>
+            <button
+              type="button"
+              onClick={handleExplainRecommendations}
+              disabled={isGeneratingExplanations || recommendations.length === 0}
+              className="w-fit rounded-md border border-primary px-4 py-2 text-sm font-semibold text-primary disabled:opacity-60"
+            >
+              {isGeneratingExplanations ? "Explaining..." : "Explain Recommendations"}
+            </button>
+          </div>
         </div>
-        <RecommendationList recommendations={recommendations} />
+        <RecommendationList recommendations={recommendations} explanations={explanations} />
       </section>
 
       <Link to="/" className="text-primary underline">

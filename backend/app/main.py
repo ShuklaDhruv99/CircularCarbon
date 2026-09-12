@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from app.api import (
     emissions,
     energy,
+    explanations,
     factories,
     health,
     materials,
@@ -41,3 +42,4 @@ app.include_router(materials.router)
 app.include_router(waste.router)
 app.include_router(emissions.router)
 app.include_router(recommendations.router)
+app.include_router(explanations.router)
