@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api import (
+    action_plan,
     emissions,
     energy,
     explanations,
@@ -50,3 +51,4 @@ app.include_router(emissions.router)
 app.include_router(recommendations.router)
 app.include_router(explanations.router)
 app.include_router(simulations.router)
+app.include_router(action_plan.router)
