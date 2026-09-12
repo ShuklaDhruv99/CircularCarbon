@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     environment: str = "development"
     database_url: str = "postgresql://postgres:postgres@localhost:5432/circularcarbon"
     gemini_api_key: str = ""
+    gemini_model: str = "gemini-2.0-flash"
     cors_origins: str = "http://localhost:5173"
 
     @property

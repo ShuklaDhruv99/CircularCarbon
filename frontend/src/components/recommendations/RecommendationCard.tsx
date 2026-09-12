@@ -1,7 +1,9 @@
+import type { ReactNode } from "react";
 import type { Recommendation } from "../../types/domain";
 
 interface RecommendationCardProps {
   recommendation: Recommendation;
+  children?: ReactNode;
 }
 
 const strategyLabels: Record<Recommendation["strategy"], string> = {
@@ -39,7 +41,7 @@ function formatPayback(value: string | null): string {
   return Number.isFinite(parsed) ? `${parsed} months` : value;
 }
 
-function RecommendationCard({ recommendation }: RecommendationCardProps) {
+function RecommendationCard({ recommendation, children }: RecommendationCardProps) {
   return (
     <li
       data-testid={`recommendation-card-${recommendation.id}`}
@@ -68,6 +70,8 @@ function RecommendationCard({ recommendation }: RecommendationCardProps) {
         <span>Payback: {formatPayback(recommendation.payback_period)}</span>
         <span className="font-semibold text-primary">Score: {formatScore(recommendation.score)}</span>
       </div>
+
+      {children}
     </li>
   );
 }

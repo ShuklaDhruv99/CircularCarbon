@@ -154,3 +154,12 @@ export interface Recommendation {
   score: string | null;
   created_at: string;
 }
+
+export interface Explanation {
+  recommendation_id: number;
+  why: string;
+  what_to_do: string;
+  expected_benefit: string;
+  assumptions: string;
+  source: "gemini" | "fallback";
+}
