@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { getHealth } from "../services/api";
 import type { HealthStatus } from "../types";
 
@@ -29,6 +30,13 @@ function HomePage() {
       {error && (
         <p className="rounded-md bg-red-100 px-4 py-2 text-red-800">{error}</p>
       )}
+
+      <Link
+        to="/onboarding"
+        className="mt-2 rounded-md bg-primary px-6 py-3 text-sm font-semibold text-white hover:bg-primary-dark"
+      >
+        Start Assessment
+      </Link>
     </div>
   );
 }
