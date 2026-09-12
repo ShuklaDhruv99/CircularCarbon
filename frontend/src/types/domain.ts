@@ -155,6 +155,17 @@ export interface Recommendation {
   created_at: string;
 }
 
+export interface SimulationResult {
+  factory_id: number;
+  baseline_co2e: string;
+  projected_co2e: string;
+  co2_reduction: string;
+  reduction_percentage: string;
+  total_implementation_cost: string;
+  estimated_payback_months: string | null;
+  applied_recommendations: Recommendation[];
+}
+
 export interface Explanation {
   recommendation_id: number;
   why: string;
