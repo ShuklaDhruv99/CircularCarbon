@@ -14,6 +14,7 @@ from app.api import (
     materials,
     processes,
     recommendations,
+    report,
     simulations,
     waste,
 )
@@ -52,3 +53,4 @@ app.include_router(recommendations.router)
 app.include_router(explanations.router)
 app.include_router(simulations.router)
 app.include_router(action_plan.router)
+app.include_router(report.router)
