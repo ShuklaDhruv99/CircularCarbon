@@ -20,6 +20,7 @@ import HotspotList from "../components/emissions/HotspotList";
 import RecommendationList from "../components/recommendations/RecommendationList";
 import SimulationPanel from "../components/simulation/SimulationPanel";
 import ActionPlanPanel from "../components/action-plan/ActionPlanPanel";
+import ReportDownloadButton from "../components/report/ReportDownloadButton";
 
 type LoadState = "loading" | "not-calculated" | "ready" | "error";
 
@@ -303,6 +304,11 @@ function EmissionsDashboard() {
           onGenerate={handleGenerateActionPlan}
           disabled={recommendations.length === 0}
         />
+      </section>
+
+      <section className="flex flex-col gap-4 rounded-md border border-border bg-surface p-4">
+        <h2 className="text-lg font-semibold text-text">Download Report</h2>
+        <ReportDownloadButton factoryId={Number(factoryId)} hasCalculatedEmissions={!!breakdown} />
       </section>
 
       <Link to="/" className="text-primary underline">
